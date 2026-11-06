@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>ECORA 3D Layout</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#eef2f1;--fg:#16201d;--card:#fff;--ac:#0f9d68;--mu:#5b6a66;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12181a;--fg:#e8f0ed;--card:#1c2528;--mu:#9bb0a9}}
+:root[data-theme="dark"]{--bg:#12181a;--fg:#e8f0ed;--card:#1c2528;--mu:#9bb0a9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif}
+header{padding:14px 16px 4px}h1{margin:0;font-size:20px}p{margin:4px 0;color:var(--mu)}
+#cv{width:100%;height:56vh;min-height:320px;display:block;touch-action:none;cursor:grab}
+.bar{display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px}
+button{border:1px solid var(--ac);background:var(--card);color:var(--fg);padding:8px 12px;border-radius:8px;font-size:14px;cursor:pointer}
+button.on{background:var(--ac);color:#fff}
+#step{margin:4px 16px 16px;padding:12px 14px;background:var(--card);border-radius:10px;border-left:4px solid var(--ac)}
+#step b{display:block;margin-bottom:2px}
+table{margin:0 16px 20px;width:calc(100% - 32px);border-collapse:collapse;font-size:13px}
+td{padding:6px 8px;border-bottom:1px solid var(--mu)}td:first-child{font-weight:600;white-space:nowrap}
+h2{margin:18px 16px 4px;font-size:17px}.sv{margin:0 16px;max-width:560px}.sv svg{width:100%;height:auto;display:block}pre{margin:0 16px;padding:12px;background:var(--card);border-radius:8px;overflow-x:auto;font-size:12px;line-height:1.4}#ph{margin:0 16px 12px;max-width:300px;padding:14px;border:3px solid var(--fg);border-radius:22px;background:var(--card);font-size:13px;line-height:1.5}#ph .f{padding:5px 8px;border:1px solid var(--mu);border-radius:6px;margin:4px 0}#ph .bt{display:inline-block;padding:6px 12px;border-radius:6px;background:#0f9d68;color:#fff;margin:4px 4px 0 0}#ph .bt.off{background:var(--mu);opacity:.5}#ph .cd{font-size:22px;font-weight:700}.sh{overflow-x:auto;margin:0 16px;border:1px solid var(--mu);background:#fff}.sh svg{min-width:900px;width:100%;display:block}.tw{overflow-x:auto;margin:0 16px 24px}.tw table{margin:0;width:100%}td input{padding:4px}#ph{display:none!important}.lv{margin:8px 16px;padding:12px;border:1px solid var(--mu);border-radius:10px;background:var(--card);font-size:14px}.lv label{margin-right:10px;white-space:nowrap}.lv input{width:64px;padding:6px;font-size:16px}#siteWrap{max-width:430px;margin:8px auto 24px;padding:0 8px}#siteWrap iframe{width:100%;height:700px;border:2px solid var(--mu);border-radius:20px;background:var(--bg)}.siteonly>*:not(#siteWrap){display:none!important}.siteonly #siteWrap{position:fixed;inset:0;max-width:none;margin:0;padding:0;z-index:50}.siteonly #siteWrap iframe{height:100%;border:0;border-radius:0}</style></head><body>
+<header><h1>ECORA: 3D Layout and How to Use</h1><p>Drag to rotate, scroll or pinch to zoom. Use the buttons to see inside and to play the usage steps.</p></header>
+<canvas id="cv"></canvas>
+<div class="bar"><button id="xr">X-ray view</button><button data-s="0">1 Scan and log in</button><button data-s="1">2 Deposit mode</button><button data-s="2">3 Drop item</button><button data-s="3">4 Points</button><button data-s="4">5 Redeem</button><button data-s="5">6 Timer ends</button><button data-s="6">7 Open back door</button></div>
+<div id="step"><b>Press a step</b>Tap 1 to 7 to see how a student uses ECORA.</div>
+<div id="ph"></div>
+<div class="lv" id="live"><b>Live deposit</b><br><label>Plastic bottles <input id="np" type="number" min="0" max="30" value="3"></label><label>Tin cans <input id="nc" type="number" min="0" max="30" value="2"></label><button id="go">Drop items</button> <button id="clr">Empty bin</button><div id="lst" style="font-size:13px;margin-top:6px">Bin: 0 bottle(s), 0 can(s)</div><div id="link" style="font-size:13px;margin-top:4px"></div></div>
+<div class="lv"><b>Scan to open the website</b><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:8px"><img id="bigqr" alt="QR code to open the ECORA website" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoCAIAAABkZftOAAAFXElEQVR42u3dYY6bQAyA0VJx/yunJ2Cnw9rYDu/93iaE8mmQrIHj8/n8AZ711ykA4YHwAOGB8ADhgfAA4YHwAOGB8EB4gPBAeIDwYJpz9x8cxzHih13tM7w6/qh9iVXnZ/f3TjnP0683Kx641QThAcID4QHCA+EBN51RH1T1fM6qOc/unCp7rrV7Hqrmfq43Kx641QThAcID4QHCA+EB/+XM/oKouUfU3KZqzpZ9/Nn/L1Hnbcp+yOw5oRUP3GqC8ADhgfAA4YHwgIXzbT/4W+dOV66Oc/p+PCseIDwQHiA8EB4IDxAefLnXzfGi5ldR+9mi/n5X9nwSKx4IDxAeCA+EBwgPhAf8Svocb/pcKPv4u52f3flet+Ofcr1Z8UB4IDxAeCA8QHggPGAhbI435XmM2c/V/Na/jzqfb7verHggPBAeIDwQHiA8EB5w0/Yc723PXcx+HmbU33eba0Udz7deb1Y8EB4IDxAeCA8QHggPWNie42Xv78qeU1V9ftX5jJL9PsCo89PturXigVtNEB4gPBAeIDwQHnDTUbXfafpc7m3zyajvjZq/TTkPVjxwqwnCA4QHwgOEB8IDbgrbjxdlypwne/65e5xT5l3dPr/qPFjxwK0mCA8QHggPEB4ID1g4oz4oal/W7t9nz/2idHtuZ9TnR10PVddh9nmw4oFbTRAeIDwQHiA8EB5wU9gcb3dOUvXesytVc8js3zVF1Pmp2u/nuZrgVhMQHggPhAcID4QHBAt7P97051tmz82mvC+u2/sAq44/+3qz4oFbTRAeIDwQHiA8EB6wcFQ9l3LK/DB7/1vVcz6jZO8z7Ha9WfHArSYgPBAeIDwQHggPeMiZ/QXZ+7J2P7/quYu7v2v387vto+v2+VHn04oHbjUB4YHwAOGB8EB4wEPC5nhV+526vQ+tan9j1f9Xt+Of8l5BKx4ID4QHCA+EBwgPhAcspO/Hi9o/VvU8xmzT3783RdU+RiseuNUE4QHCA+EBwgPhATdtz/Gy9zVlz/d2vW2uWHU9THleaNTvteKBW00QHiA8EB4gPBAesBC2Hy97TpU9P6zaz9ZtvhT1+VHPI+22jy7qOrHigVtNEB4gPBAeIDwQHrCQ/lzNbs91/Nb3wmUfZ/Z7And/b9V8z348cKsJCA+EBwgPhAfCAx6yPcfLfo7llW7vkYuap01/3mb2PsaqeWD2cVrxwK0mCA8QHggPEB4ID1g4sudvl1/c7P1yUfu+up2Hbv+/3c5/9vFb8cCtJggPEB4IDxAeCA+4Kf39eFHPJ6x6HmbVXHFXtzlYlSlzTiseCA+EBwgPhAcID4QHLBzZzz+s2s/WTfb+um771sw/rXjgVhMQHggPhAcID4QH/Mr2fryqfXRRn589h5yy3y/7PYFV++KmzHWteCA8EB4gPBAeIDwQHrCwPcebvv9tyu+asr+x236/quO04oFbTUB4IDwQHiA8EB4QLOz9eFVzkqj5W/a+vqrfNeX8Z19X3Z5fasUDt5ogPEB4IDxAeCA8YOHM/oKqOVvU5+wef9S8qNtcccp1snuer743+3iseOBWE4QHCA+EBwgPhAcsnG/7wd32uVW9py57njnleZtR59OKB241AeGB8EB4gPBAeECw0yn42ZTnZEZ9frfnT1b9ruzrwYoHbjVBeIDwQHiA8EB4wMIx/fmN2fOi7M/ptj+w6vdO2R/o/XjgVhMQHggPEB4ID4QHPCRsP163edTucU55j1zUPLDqPYHZx7/7vruo55da8cCtJiA8EB4IDxAeCA8IdkyZX4EVDxAeCA8QHggPEB4ID4QHCA+EBwgPhAcID4QHCA8K/QOBQttqwEZgVAAAAABJRU5ErkJggg==" style="width:200px;height:200px;image-rendering:pixelated;background:#fff;padding:8px;border-radius:8px"><div style="flex:1;min-width:200px">Scan this with your phone to open the ECORA website. Log in and tap Deposit. Then choose how many bottles and cans to drop here. The website counts each item and resets its 30-second timer.</div></div></div>
+<div id="siteWrap"><iframe id="siteFrame" title="ECORA website"></iframe></div>
+<script type="text/plain" id="siteSrc"><!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>ECORA Website</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#eef3f1;--fg:#14201c;--card:#fff;--ac:#0f9d68;--mu:#5b6a66;--bd:#cfd9d5;--rd:#c63a3a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11181a;--fg:#e8f0ed;--card:#1b2427;--mu:#9bb0a9;--bd:#2c3a3e}}
+:root[data-theme="dark"]{--bg:#11181a;--fg:#e8f0ed;--card:#1b2427;--mu:#9bb0a9;--bd:#2c3a3e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif}
+.w{max-width:760px;margin:0 auto;padding:14px 16px 40px}h1{margin:0;font-size:24px;color:var(--ac)}h2{font-size:16px;margin:16px 0 6px}
+.m{color:var(--mu);font-size:13px;margin:2px 0}.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:10px 0}
+.tabs{display:flex;gap:6px;margin:10px 0}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{border:1px solid var(--ac);background:var(--card);color:var(--fg);padding:9px 14px;border-radius:8px;font-size:14px;cursor:pointer}
+button.on,button.p{background:var(--ac);color:#fff}button.r{background:var(--rd);border-color:var(--rd)}button:disabled{opacity:.35;cursor:not-allowed}
+label{display:block;margin:8px 0;font-size:13px;color:var(--mu)}input{display:block;width:100%;margin-top:3px;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);font-size:15px}
+.big{font-size:44px;font-weight:700;line-height:1.1}.bar{height:8px;background:var(--bd);border-radius:6px;margin:8px 0;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+.n{background:var(--card);border-left:4px solid var(--rd);padding:10px 12px;border-radius:8px;margin:10px 0}
+.tk{border:2px dashed var(--ac)}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.g .c{margin:0}.g .big{font-size:26px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+html{-webkit-text-size-adjust:100%}button{min-height:48px;border-radius:12px;font-size:16px;font-weight:600;touch-action:manipulation}.row button{flex:1 1 140px}input{font-size:16px;padding:13px;border-radius:12px}
+header{background:linear-gradient(135deg,#0f9d68,#0a6b47);color:#fff;padding:16px 16px 30px}header h1{color:#fff;font-size:26px}header span{font-size:13px;opacity:.9}
+header{position:relative}.tg{position:absolute;top:14px;right:14px;min-height:40px;padding:6px 14px;border:1px solid #ffffff90;background:#ffffff25;color:#fff;border-radius:20px;font-size:14px}
+.w{margin:-16px auto 0;padding:0 14px 96px}.c{border-radius:18px;box-shadow:0 2px 10px rgba(0,0,0,.07)}.big{font-size:56px}.tabs button{flex:1}
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;background:var(--card);border-top:1px solid var(--bd);padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}.nav button{flex:1;border:0;background:none;color:var(--mu)}.nav button.on{background:var(--ac);color:#fff}
+.hero{background:linear-gradient(135deg,#0f9d68,#0a6b47);color:#fff;border:0}.hero .m{color:#e3f7ee}.hero .bar{background:#ffffff45}.hero .bar i{background:#fff}.hero button{background:#fff;color:#0a6b47;border-color:#fff}.hero button.r{background:#c63a3a;color:#fff;border-color:#c63a3a}.hero button:last-child{background:transparent;color:#fff;border-color:#ffffff90}
+.dp{text-align:center}.ring{width:150px;height:150px;border-radius:50%;margin:10px auto;display:grid;place-items:center;background:conic-gradient(var(--ac) var(--p),var(--bd) 0)}.ring span{width:120px;height:120px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:48px;font-weight:700}
+</style></head><body><header><h1>&#9851; ECORA</h1><span>Drop it, sort it, earn it</span><button id="tg" class="tg"></button></header><div class="w"><div id="app"></div></div>
+<nav class="nav"><button data-a="v" data-v="student">Student</button><button data-a="v" data-v="admin">Administrator</button></nav>
+<script>
+let D,mem=null,view='student',me=null,adm=false,mode='login',msg='',tok=null,S={on:false,left:0};
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function H(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('ecora:'+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return 'p:'+s}}
+function ld(){try{return JSON.parse(localStorage.getItem('ecora'))}catch(e){return mem}}
+function sv(){try{localStorage.setItem('ecora',JSON.stringify(D))}catch(e){mem=D}}
+const U=()=>D.users.find(x=>x.id===me),KN={plastic:'Plastic bottle',can:'Tin can',redeem:'Redeemed token'};
+function auth(){return `<div class="c"><div class="tabs"><button data-a="m" data-m="login" class="${mode==='login'?'on':''}">Log in</button><button data-a="m" data-m="reg" class="${mode==='reg'?'on':''}">Register</button></div>
+<label>Complete name<input id="nm" autocomplete="name"></label><label>ID number<input id="id" inputmode="numeric"></label><label>Password<input id="pw" type="password" autocomplete="current-password"></label>
+<button class="p" data-a="${mode==='login'?'login':'reg'}">${mode==='login'?'Log in':'Create account'}</button><p class="m">Scan the QR on the ECORA bin to open this page.</p></div>`}
+function hist(u){const r=D.log.filter(x=>x.id===u.id).slice(-8).reverse();return r.length?`<h2>Recent activity</h2><div class="c tw"><table>${r.map(x=>`<tr><td>${new Date(x.t).toLocaleString()}</td><td>${KN[x.k]}</td><td>${x.p>0?'+':''}${x.p}</td></tr>`).join('')}</table></div>`:''}
+function dash(){const u=U(),c=D.cfg,ok=u.points>=c.cost;
+return `<div class="c hero"><div class="m">Hello, ${esc(u.name)} (${esc(u.id)})</div><div class="big">${u.points}</div><div class="m">points</div>
+<div class="bar"><i style="width:${Math.min(100,u.points/c.cost*100)}%"></i></div><div class="m">${ok?'Redeem is available.':(c.cost-u.points)+' more points to unlock Redeem.'}</div>
+<div class="row"><button class="p" data-a="dep">Deposit</button><button class="p r" data-a="red" ${ok?'':'disabled'}>Redeem</button><button data-a="out">Log out</button></div></div>`
++(S.on?`<div class="c dp"><div class="m">Deposit mode: drop your items in the bin.</div><div class="ring" style="--p:${S.left/c.secs*100}%"><span id="cd">${S.left}</span></div><div class="m">seconds left. The timer goes back to ${c.secs} each time an item is detected.</div>
+<div class="m">Waiting for items. Drop bottles and cans into the machine and they are counted here.</div>
+<div class="row"><button class="p" data-a="done">Done</button></div><div class="m">This session: ${S.pl} bottle(s), ${S.cn} can(s), +${S.pts} points</div></div>`:'')
++(tok?`<div class="c tk"><b>Token</b><div class="big">${tok}</div><div class="m">₱${c.value} coupon. Take the paper token from the machine slot.</div></div>`:'')+hist(u)}
+function loginA(){return `<div class="c"><b>Administrator log in</b><label>Username<input id="au" value="admin"></label><label>Password<input id="ap" type="password"></label><button class="p" data-a="al">Log in</button><p class="m">Demo login: admin / admin123. Change it under settings.</p></div>`}
+function adminV(){const c=D.cfg,pts=D.users.reduce((a,x)=>a+x.points,0),L=D.log.slice(-15).reverse();
+return `<div class="row"><button data-a="ao">Log out</button></div><h2>Overview</h2><div class="g">
+<div class="c"><div class="m">Students</div><div class="big">${D.users.length}</div></div><div class="c"><div class="m">Points held</div><div class="big">${pts}</div></div><div class="c"><div class="m">Tokens redeemed</div><div class="big">${D.tokens}</div></div>
+<div class="c"><div class="m">Plastic in bin</div><div class="big">${D.bin.plastic}</div></div><div class="c"><div class="m">Tin cans in bin</div><div class="big">${D.bin.can}</div></div></div>
+<div class="row"><button data-a="empty">Mark bin as emptied</button></div>
+<h2>Settings</h2><div class="c"><label>Points per plastic bottle<input id="c1" type="number" min="1" value="${c.plastic}"></label><label>Points per tin can<input id="c2" type="number" min="1" value="${c.can}"></label>
+<label>Points needed for one token<input id="c3" type="number" min="1" value="${c.cost}"></label><label>Token value (₱)<input id="c4" type="number" min="1" value="${c.value}"></label>
+<label>Deposit timer (seconds)<input id="c5" type="number" min="5" value="${c.secs}"></label><label>New admin password (optional)<input id="c6" type="password"></label><button class="p" data-a="as">Save settings</button></div>
+<h2>Students</h2><div class="c tw"><table><tr><th>Name</th><th>ID</th><th>Points</th><th></th></tr>${D.users.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.id)}</td><td>${x.points}</td><td><button data-a="del" data-id="${esc(x.id)}">Remove</button></td></tr>`).join('')||'<tr><td>No students yet</td></tr>'}</table></div>
+<h2>Latest transactions</h2><div class="c tw"><table><tr><th>Time</th><th>Student</th><th>Type</th><th>Points</th></tr>${L.map(x=>`<tr><td>${new Date(x.t).toLocaleString()}</td><td>${esc(x.n)}</td><td>${KN[x.k]}</td><td>${x.p>0?'+':''}${x.p}</td></tr>`).join('')||'<tr><td>None yet</td></tr>'}</table></div>`}
+function render(){document.querySelectorAll('.nav>button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+$('#app').innerHTML=(msg?`<div class="n">${esc(msg)}</div>`:'')+(view==='admin'?(adm?adminV():loginA()):(me?dash():auth()));post()}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled||!D)return;const a=b.dataset.a;msg='';const c=D.cfg;
+if(a==='v')view=b.dataset.v;
+else if(a==='m')mode=b.dataset.m;
+else if(a==='reg'||a==='login'){const nm=$('#nm').value.trim(),id=$('#id').value.trim(),pw=$('#pw').value,u=D.users.find(x=>x.id===id);
+if(!nm||!id||pw.length<6)msg='Fill in all fields. The password needs at least 6 characters.';
+else if(a==='reg'){if(u)msg='That ID number is already registered.';else{D.users.push({name:nm,id,hash:await H(id+pw),points:0});me=id;sv()}}
+else if(u&&u.name.toLowerCase()===nm.toLowerCase()&&u.hash===await H(id+pw))me=id;else msg='The name, ID number or password is not correct.'}
+else if(a==='dep'){S={on:true,left:c.secs,pl:0,cn:0,pts:0};tok=null}
+else if(a==='it'&&S.on){const t=b.dataset.t,u=U();u.points+=c[t];D.bin[t]++;D.log.push({t:Date.now(),id:me,n:u.name,k:t,p:c[t]});S.left=c.secs;if(t==='plastic')S.pl++;else S.cn++;S.pts+=c[t];sv()}
+else if(a==='red'){const u=U();if(u.points>=c.cost){u.points-=c.cost;D.tokens++;tok='ECORA-'+Math.random().toString(36).slice(2,8).toUpperCase();D.log.push({t:Date.now(),id:me,n:u.name,k:'redeem',p:-c.cost});sv()}}
+else if(a==='done'){if(S.on){msg='Deposit finished: '+S.pl+' plastic bottle(s) and '+S.cn+' tin can(s), +'+S.pts+' points added to your account.';S.on=false}}
+else if(a==='out'){me=null;S.on=false;tok=null}
+else if(a==='al'){if($('#au').value==='admin'&&await H($('#ap').value)===D.admin)adm=true;else msg='Wrong username or password.'}
+else if(a==='ao')adm=false;
+else if(a==='as'){const v=[1,2,3,4,5].map(i=>parseInt($('#c'+i).value));if(v.some(x=>!(x>0)))msg='Enter numbers greater than zero.';else{c.plastic=v[0];c.can=v[1];c.cost=v[2];c.value=v[3];c.secs=Math.max(5,v[4]);const p=$('#c6').value;if(p){if(p.length<6)msg='The new password needs at least 6 characters.';else D.admin=await H(p)}if(!msg){msg='Settings saved.'}sv()}}
+else if(a==='empty'){D.bin={plastic:0,can:0};sv()}
+else if(a==='del'){D.users=D.users.filter(x=>x.id!==b.dataset.id);sv()}
+render()});
+const dm=()=>matchMedia('(prefers-color-scheme:dark)').matches,cur=()=>document.documentElement.getAttribute('data-theme')||(dm()?'dark':'light');
+function lab(){$('#tg').textContent=cur()==='dark'?'☀ Light':'☾ Dark'}
+try{const t=localStorage.getItem('ecora-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}
+$('#tg').addEventListener('click',()=>{const t=cur()==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ecora-theme',t)}catch(e){}lab()});lab();
+setInterval(()=>{if(!S.on)return;S.left--;if(S.left<=0){S.on=false;me=null;msg='Time is up. You were logged out. This session added '+S.pts+' points, now saved in your account.';render()}else{const el=$('#cd');if(el){el.textContent=S.left;el.parentElement.style.setProperty('--p',S.left/D.cfg.secs*100+'%')}post()}},1000);
+function post(){try{const u=me&&U();parent.postMessage({ecora:'state',login:!!u,on:!!(u&&S.on),can:!!(u&&u.points>=D.cfg.cost),tok:(u&&tok)||'',left:S.left},'*')}catch(e){}}
+const seenIds=new Set();
+addEventListener('message',e=>{const d=e.data;if(!d||d.ecora!=='item'||!D||seenIds.has(d.id))return;seenIds.add(d.id);
+if(!me||!S.on){msg=me?'An item was dropped, but Deposit mode is off. Tap Deposit first.':'An item was dropped. Log in and tap Deposit first.';render();return}
+const t=d.t==='can'?'can':'plastic',c=D.cfg,u=U();u.points+=c[t];D.bin[t]++;D.log.push({t:Date.now(),id:me,n:u.name,k:t,p:c[t]});S.left=c.secs;if(t==='plastic')S.pl++;else S.cn++;S.pts+=c[t];sv();msg='';render()});
+(async()=>{D=ld()||{users:[],log:[],cfg:{plastic:20,can:10,cost:100,value:50,secs:30},admin:await H('admin123'),bin:{plastic:0,can:0},tokens:0};render()})();
+<\/script></body></html>
+</script>
+<h2>Vendo unit (front view)</h2>
+<div class="sv"><svg viewBox="0 0 400 330" font-family="system-ui,sans-serif" font-size="12" fill="currentColor">
+<rect x="20" y="10" width="150" height="300" rx="10" fill="#2b3035"/>
+<rect x="55" y="22" width="80" height="80" fill="#fff"/><rect x="62" y="29" width="20" height="20" fill="#000"/><rect x="108" y="29" width="20" height="20" fill="#000"/><rect x="62" y="75" width="20" height="20" fill="#000"/><rect x="92" y="55" width="12" height="12" fill="#000"/><rect x="108" y="78" width="16" height="10" fill="#000"/>
+<circle cx="65" cy="125" r="9" fill="#14a35f"/>
+<circle cx="125" cy="125" r="9" fill="#c63a3a"/>
+<text x="95" y="160" text-anchor="middle" fill="#9bb0a9" font-size="10">scan to log in</text>
+<rect x="45" y="185" width="100" height="50" rx="4" fill="#1a1f23"/><text x="95" y="215" text-anchor="middle" fill="#9bb0a9" font-size="10">ESP32 + thermal printer</text>
+<rect x="50" y="262" width="90" height="8" rx="3" fill="#000"/><rect x="70" y="270" width="50" height="28" fill="#fff4c2"/><text x="95" y="288" text-anchor="middle" fill="#333" font-size="10">₱50 TOKEN</text>
+<g stroke="currentColor" stroke-width="1" opacity=".6"><line x1="170" y1="32" x2="200" y2="32"/><line x1="170" y1="110" x2="200" y2="90"/><line x1="170" y1="110" x2="200" y2="130"/><line x1="131" y1="150" x2="200" y2="170"/><line x1="170" y1="210" x2="200" y2="210"/><line x1="170" y1="266" x2="200" y2="266"/></g>
+<text x="205" y="36">1. QR code (scan to log in)</text><text x="205" y="94">2. Green lamp: session active</text><text x="205" y="134">3. Red lamp: Redeem available</text><text x="205" y="174">4. Deposit and Redeem: on the website</text><text x="205" y="214">5. Controller and printer</text><text x="205" y="270">6. Paper token slot</text></svg></div>
+<table>
+<tr><td>Size</td><td>183 cm (6 ft) tall, about 100 cm wide; base buried 3 in (7.6 cm)</td></tr>
+<tr><td>Body</td><td>Stainless steel wire mesh for almost the whole height, with a 1 in blue plastic (tank-type) cap band at the top under the solid lid</td></tr>
+<tr><td>Inlet</td><td>15 cm hole at 130 cm height, fits a 2 L bottle; sensor sits behind it</td></tr>
+<tr><td>Sensors</td><td>Inductive (metal can) and capacitive (plastic bottle), read by an ESP32</td></tr>
+<tr><td>Sorting cylinder</td><td>2 ft (61 cm) horizontal cylinder in line with the inlet, resting on top of the divider and split lengthwise into two half-shells; each half swings open to its own side, driven by a servo</td></tr>
+<tr><td>Vendo unit</td><td>QR code panel, green lamp (session active), red lamp (points redeemable), paper token slot</td></tr>
+<tr><td>Website</td><td>Student scans the QR, logs in with complete name, ID number and password, sees points, and chooses Deposit or Redeem. Redeem is locked until points are enough. Deposit runs a 30-second countdown that resets to 30 each time an item is detected.</td></tr>
+<tr><td>Vendo housing</td><td>Rectangular enclosure about 36 x 50 x 22 cm built into the front of the cylinder body, with about a quarter of its depth sticking out through the mesh and its panel facing out. Inside: ESP32 board (built-in WiFi), servo driver board, thermal printer with paper roll, power supply and wiring. Switch on X-ray view to see it.</td></tr>
+<tr><td>Back door</td><td>Double-leaf door at the back, padlocked, opens outward so staff can take out the sorted bottles and cans for selling</td></tr>
+</table>
+<h2>Possible code (ESP32, Arduino IDE)</h2>
+<pre>#include &lt;WiFi.h&gt;
+#include &lt;HTTPClient.h&gt;
+#include &lt;ESP32Servo.h&gt;
+
+// Pins
+const int IND=34, CAP=35;          // inductive (metal), capacitive (plastic)
+const int LED_GRN=14, LED_RED=27;  // session active, redeemable
+Servo doorTin, doorPlastic;        // each servo swings one half of the sorting cylinder
+
+// Placeholder values: set after your costing
+const long PTS_PLASTIC=20, PTS_CAN=10, TOKEN_COST=100;
+const unsigned long SESSION_MS=30000;   // 30 seconds
+
+bool sessionOn=false;
+String user="";                    // student logged in on the website
+long points=0;
+unsigned long lastItem=0;          // time of the last item (timer restarts here)
+
+void setup(){
+  pinMode(IND,INPUT); pinMode(CAP,INPUT);
+  pinMode(LED_GRN,OUTPUT); pinMode(LED_RED,OUTPUT);
+  doorTin.attach(32); doorPlastic.attach(33);
+  doorTin.write(0); doorPlastic.write(0);   // closed
+  Serial2.begin(9600);                      // thermal printer
+  WiFi.begin("ECORA-WIFI","password");      // the website is hosted online
+}
+
+void loop(){
+  // 1. Ask the website: did a student log in and tap Deposit? did they tap Redeem?
+  checkServer();
+
+  if(sessionOn){
+    // 2. Sense the item, open the matching half, add points, restart the 30 s timer
+    if(digitalRead(IND)==HIGH) item(doorTin, PTS_CAN);
+    else if(digitalRead(CAP)==HIGH) item(doorPlastic, PTS_PLASTIC);
+
+    // 3. Red lamp on when points can pay for a token
+    digitalWrite(LED_RED, points&gt;=TOKEN_COST);
+
+    // 4. No item for 30 seconds: end the session and log the student out
+    if(millis()-lastItem &gt; SESSION_MS) endSession();
+  }
+}
+
+void item(Servo &amp;d, long pts){
+  openHalf(d);
+  points+=pts;
+  lastItem=millis();               // countdown goes back to 30 seconds
+  sendPoints(user,points);         // website shows the new total
+}
+
+void startSession(String u){ user=u; sessionOn=true; lastItem=millis(); digitalWrite(LED_GRN,HIGH); }
+void endSession(){ sessionOn=false; user=""; digitalWrite(LED_GRN,LOW); digitalWrite(LED_RED,LOW); }
+void openHalf(Servo &amp;d){ d.write(90); delay(1200); d.write(0); }
+
+void redeem(){
+  if(points&gt;=TOKEN_COST){ printToken(); points-=TOKEN_COST; sendPoints(user,points); }
+}
+
+// Website calls (use HTTPClient to your own server API)
+void checkServer(){ /* GET: logged-in user, deposit pressed, redeem pressed */ }
+void sendPoints(String u,long p){ /* POST the new points to the database */ }
+void printToken(){ Serial2.println("ECORA TOKEN  PHP 50"); Serial2.println("\n\n"); }</pre>
+<p style="margin:6px 16px">This is a starting skeleton, not tested hardware code. The three website calls need your real server and database. The password check must happen on the server, which stores passwords hashed; the ESP32 never sees them. The sensor outputs also need a voltage divider (see materials).</p>
+<h2>Materials list</h2>
+<table>
+<tr><td>Body</td><td>Stainless steel wire mesh, stainless angle bar or tube frame, steel base plate (buried 3 in)</td></tr>
+<tr><td>Top</td><td>1 in blue HDPE plastic band (water tank type), solid lid</td></tr>
+<tr><td>Sorting cylinder</td><td>2 ft pipe about 24 cm wide (stainless or HDPE) cut lengthwise into two halves, hinges along the top, a servo and linkage per half, a closed back end</td></tr>
+<tr><td>Inside</td><td>Steel partition sheet (the divider) running from the floor up to the top cap and wrapping around the cylinder, chute guides</td></tr>
+<tr><td>Controller</td><td>ESP32 DevKit board</td></tr>
+<tr><td>Sensors</td><td>Inductive proximity LJ12A3-4-Z/BX (metal cans), capacitive proximity LJC18A3-H-Z/BX (plastic bottles)</td></tr>
+<tr><td>Actuators</td><td>2 servos (SG90 for light doors, MG996R if the doors are heavy)</td></tr>
+<tr><td>Student access</td><td>Weatherproof printed QR code, ESP32 WiFi, hosted website with a database for accounts and points</td></tr>
+<tr><td>Token</td><td>58 mm thermal printer (TTL) and thermal paper roll</td></tr>
+<tr><td>Controls</td><td>Green and red indicator lamps (LEDs)</td></tr>
+<tr><td>Power</td><td>12 V 5 A adapter, 5 V buck converter, fuse</td></tr>
+<tr><td>Wiring</td><td>Voltage dividers or level shifter (sensors output 12 V, ESP32 takes 3.3 V), wires, terminal blocks</td></tr>
+<tr><td>Vendo housing</td><td>Weatherproof metal or plastic enclosure for the electronics</td></tr>
+<tr><td>Back door</td><td>2 door leaves with hinges, handle, padlock or key lock, rubber seal against rain</td></tr>
+</table>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const cv=document.getElementById('cv');
+const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(40,1,1,2000);
+S.add(new THREE.AmbientLight(0xffffff,.7));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(150,300,250);S.add(dl);
+const M=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c},o));
+const add=(g,m,x,y,z,p)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);(p||S).add(o);return o};
+const RAD=50;
+add(new THREE.CylinderGeometry(160,160,2,48),M(0x7a8a80),0,-4,0); // ground
+add(new THREE.CylinderGeometry(RAD+4,RAD+4,15,40,1,true),M(0x555d63,{side:THREE.DoubleSide}),0,7.5,0); // base wall, hollow
+add(new THREE.CylinderGeometry(RAD+4,RAD+4,1.5,40),M(0x6b747a),0,14.25,0); // inner floor where the items rest
+add(new THREE.CylinderGeometry(RAD,RAD,160.5,32,16,true),new THREE.MeshBasicMaterial({color:0xb8c4cc,wireframe:true}),0,15+80.25,0); // mesh
+const up=add(new THREE.CylinderGeometry(RAD+.6,RAD+.6,2.54,40),M(0x1f5fa8,{transparent:true,opacity:1}),0,176.75,0); // blue upper
+const lid=add(new THREE.CylinderGeometry(RAD+9,RAD+9,5,40),M(0x8a949a),0,180.5,0);
+const dome=add(new THREE.CylinderGeometry(RAD+9,RAD+9,3,40),M(0x8a949a),0,177,0);
+add(new THREE.TorusGeometry(9,1.6,10,30),M(0x111111),0,130,RAD+.5); // inlet
+add(new THREE.CircleGeometry(7.5,30),M(0x050505),0,130,RAD+.3);
+const pan=add(new THREE.BoxGeometry(36,50,22),M(0x2b3035,{transparent:true}),0,92,RAD-5.5); // vendo housing: rectangular box 36 x 50 x 28 cm
+const qc=document.createElement('canvas');qc.width=qc.height=64;const qx=qc.getContext('2d');qx.fillStyle='#fff';qx.fillRect(0,0,64,64);qx.fillStyle='#000';for(let i=0;i<21;i++)for(let j=0;j<21;j++){if(((i*7+j*13+i*j)%5)<2)qx.fillRect(4+i*2.8,4+j*2.8,2.8,2.8)}
+[[4,4],[46,4],[4,46]].forEach(([a,b])=>{qx.fillStyle='#fff';qx.fillRect(a-1,b-1,16,16);qx.fillStyle='#000';qx.fillRect(a,b,14,14);qx.fillStyle='#fff';qx.fillRect(a+2,b+2,10,10);qx.fillStyle='#000';qx.fillRect(a+4,b+4,6,6)});
+const qt=new THREE.TextureLoader().load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoCAIAAABkZftOAAAFXElEQVR42u3dYY6bQAyA0VJx/yunJ2Cnw9rYDu/93iaE8mmQrIHj8/n8AZ711ykA4YHwAOGB8ADhgfAA4YHwAOGB8EB4gPBAeIDwYJpz9x8cxzHih13tM7w6/qh9iVXnZ/f3TjnP0683Kx641QThAcID4QHCA+EBN51RH1T1fM6qOc/unCp7rrV7Hqrmfq43Kx641QThAcID4QHCA+EB/+XM/oKouUfU3KZqzpZ9/Nn/L1Hnbcp+yOw5oRUP3GqC8ADhgfAA4YHwgIXzbT/4W+dOV66Oc/p+PCseIDwQHiA8EB4IDxAefLnXzfGi5ldR+9mi/n5X9nwSKx4IDxAeCA+EBwgPhAf8Svocb/pcKPv4u52f3flet+Ofcr1Z8UB4IDxAeCA8QHggPGAhbI435XmM2c/V/Na/jzqfb7verHggPBAeIDwQHiA8EB5w0/Yc723PXcx+HmbU33eba0Udz7deb1Y8EB4IDxAeCA8QHggPWNie42Xv78qeU1V9ftX5jJL9PsCo89PturXigVtNEB4gPBAeIDwQHnDTUbXfafpc7m3zyajvjZq/TTkPVjxwqwnCA4QHwgOEB8IDbgrbjxdlypwne/65e5xT5l3dPr/qPFjxwK0mCA8QHggPEB4ID1g4oz4oal/W7t9nz/2idHtuZ9TnR10PVddh9nmw4oFbTRAeIDwQHiA8EB5wU9gcb3dOUvXesytVc8js3zVF1Pmp2u/nuZrgVhMQHggPhAcID4QHBAt7P97051tmz82mvC+u2/sAq44/+3qz4oFbTRAeIDwQHiA8EB6wcFQ9l3LK/DB7/1vVcz6jZO8z7Ha9WfHArSYgPBAeIDwQHggPeMiZ/QXZ+7J2P7/quYu7v2v387vto+v2+VHn04oHbjUB4YHwAOGB8EB4wEPC5nhV+526vQ+tan9j1f9Xt+Of8l5BKx4ID4QHCA+EBwgPhAcspO/Hi9o/VvU8xmzT3783RdU+RiseuNUE4QHCA+EBwgPhATdtz/Gy9zVlz/d2vW2uWHU9THleaNTvteKBW00QHiA8EB4gPBAesBC2Hy97TpU9P6zaz9ZtvhT1+VHPI+22jy7qOrHigVtNEB4gPBAeIDwQHrCQ/lzNbs91/Nb3wmUfZ/Z7And/b9V8z348cKsJCA+EBwgPhAfCAx6yPcfLfo7llW7vkYuap01/3mb2PsaqeWD2cVrxwK0mCA8QHggPEB4ID1g4sudvl1/c7P1yUfu+up2Hbv+/3c5/9vFb8cCtJggPEB4IDxAeCA+4Kf39eFHPJ6x6HmbVXHFXtzlYlSlzTiseCA+EBwgPhAcID4QHLBzZzz+s2s/WTfb+um771sw/rXjgVhMQHggPhAcID4QH/Mr2fryqfXRRn589h5yy3y/7PYFV++KmzHWteCA8EB4gPBAeIDwQHrCwPcebvv9tyu+asr+x236/quO04oFbTUB4IDwQHiA8EB4QLOz9eFVzkqj5W/a+vqrfNeX8Z19X3Z5fasUDt5ogPEB4IDxAeCA8YOHM/oKqOVvU5+wef9S8qNtcccp1snuer743+3iseOBWE4QHCA+EBwgPhAcsnG/7wd32uVW9py57njnleZtR59OKB241AeGB8EB4gPBAeECw0yn42ZTnZEZ9frfnT1b9ruzrwYoHbjVBeIDwQHiA8EB4wMIx/fmN2fOi7M/ptj+w6vdO2R/o/XjgVhMQHggPEB4ID4QHPCRsP163edTucU55j1zUPLDqPYHZx7/7vruo55da8cCtJiA8EB4IDxAeCA8IdkyZX4EVDxAeCA8QHggPEB4ID4QHCA+EBwgPhAcID4QHCA8K/QOBQttqwEZgVAAAAABJRU5ErkJggg==');qt.magFilter=THREE.NearestFilter;qt.minFilter=THREE.LinearFilter;add(new THREE.BoxGeometry(21,21,.4),M(0xffffff),0,104,RAD+5.7);add(new THREE.PlaneGeometry(19,19),new THREE.MeshBasicMaterial({map:qt}),0,104,RAD+5.95); // QR code panel
+const card=new THREE.Object3D();
+const gb=add(new THREE.CylinderGeometry(2,2,1.5,20),M(0x0c3d26,{emissive:0x000000}),-7,89,RAD+6);gb.rotation.x=Math.PI/2;
+
+const led=add(new THREE.SphereGeometry(2.2,12,12),M(0x551111,{emissive:0x000000}),7,89,RAD+6);
+add(new THREE.BoxGeometry(16,1.4,1),M(0x000000),0,76,RAD+5.8); // token slot
+const tok=add(new THREE.BoxGeometry(10,5,.4),M(0xfff4c2),0,76,RAD+18);tok.visible=false;
+const bottle=add(new THREE.CylinderGeometry(3.5,3.5,16,14),M(0x5bb8e8,{transparent:true,opacity:.8}),0,130,RAD+60);bottle.rotation.x=Math.PI/2;bottle.visible=false;
+// inside (x-ray)
+const inner=new THREE.Group();S.add(inner);const vis=new THREE.Group();S.add(vis); // vis = parts you can see through the mesh even without X-ray
+add(new THREE.BoxGeometry(.8,52,96),M(0x9aa5ab),0,41,0,vis);add(new THREE.BoxGeometry(.8,51,81.5),M(0x9aa5ab),0,92.5,-7.25,vis); // divider: full depth below the vendo housing, stops at the housing above it
+[[5,.54],[-5,-.54]].forEach(([x,r])=>{const w=add(new THREE.BoxGeometry(11.7,.8,61),M(0x9aa5ab),x,121,15,vis);w.rotation.z=r}); // divider top flares into a cradle under the cylinder
+const dv=M(0x9aa5ab);add(new THREE.BoxGeometry(.8,33.5,96),dv,0,158.75,0,vis);add(new THREE.BoxGeometry(.8,24,32.5),dv,0,130,-31.75,vis); // divider continues above and behind the cylinder up to the cap // partition
+const mkH=(t0,col)=>{const p=new THREE.Group();p.position.set(0,142,15);vis.add(p);const m=M(col,{side:THREE.DoubleSide,transparent:true,opacity:.8});const w=new THREE.CylinderGeometry(12,12,61,20,1,true,t0,Math.PI);w.rotateX(Math.PI/2);w.translate(0,-12,0);p.add(new THREE.Mesh(w,m));return p};
+const hR=mkH(0,0x2f7fa8),hL=mkH(Math.PI,0x2fa86a); // 2 ft (61 cm) sorting cylinder, two half-shells
+
+add(new THREE.BoxGeometry(12,6,6),M(0xd4a017),0,128,RAD-8,inner); // sensor
+add(new THREE.BoxGeometry(14,9,2),M(0x0a7a4a),-9,106,35,inner); // ESP32 board (motherboard)
+add(new THREE.BoxGeometry(10,6,1),M(0x2c6fb7),0,106,52.5,inner); // servo driver board
+add(new THREE.BoxGeometry(16,12,12),M(0x444b52),0,80,45.5,inner); // thermal printer above the token slot
+const roll=add(new THREE.CylinderGeometry(5.5,5.5,8,20),M(0xfafafa),0,88,38.5,inner);roll.rotation.z=Math.PI/2; // paper roll
+add(new THREE.BoxGeometry(11,8,5),M(0xd98c1f),11,106,36.5,inner); // power supply
+add(new THREE.BoxGeometry(6,4,3),M(0x7a4ab8),11,96,35,inner); // buck converter
+const wr=(x,y,z,w,h,d,c)=>add(new THREE.BoxGeometry(w,h,d),M(c),x,y,z,inner);wr(1,103,35.5,.5,6,.5,0xc63a3a);wr(5,106,35.5,8,.5,.5,0x222222);wr(-9,96,36,.5,18,.5,0xe0c030);wr(0,87,43.5,.5,10,.5,0x3a7bd5); // wiring
+for(let i=0;i<6;i++){add(new THREE.CylinderGeometry(3.5,3.5,8,12),M(0xbdc3c7),-8-(i%3)*10,19+Math.floor(i/3)*8,-10+i*3,vis);
+add(new THREE.CylinderGeometry(3.5,3.5,16,12),M(0x5bb8e8,{transparent:true,opacity:.8}),8+(i%3)*10,23+Math.floor(i/3)*16,-10+i*3,vis);}
+inner.visible=false;
+const mkD=(x,s)=>{const p=new THREE.Group();p.position.set(x,45,-RAD-1);S.add(p);const g=new THREE.BoxGeometry(18,60,2);g.translate(-s*9,0,0);p.add(new THREE.Mesh(g,M(0x3a4147)));return p};
+const dR=mkD(18,1),dL=mkD(-18,-1);const lock=add(new THREE.BoxGeometry(4,5,3),M(0xe0b23a),0,45,-RAD-3); // back double door + padlock
+let th=.5,ph=1.25,d=330,tg=new THREE.Vector3(0,92,0);
+function cam(){C.position.set(tg.x+d*Math.sin(ph)*Math.sin(th),tg.y+d*Math.cos(ph),tg.z+d*Math.sin(ph)*Math.cos(th));C.lookAt(tg)}
+function fit(){const w=cv.clientWidth,h=cv.clientHeight;R.setPixelRatio(devicePixelRatio);R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix()}
+let drag=false,lx=0,ly=0;const pts=new Map();let pd=0;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,e);lx=e.clientX;ly=e.clientY;drag=true});
+cv.addEventListener('pointerup',e=>{pts.delete(e.pointerId);drag=false;pd=0});
+cv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,e);
+if(pts.size===2){const [a,b]=[...pts.values()];const n=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);if(pd)d=Math.min(600,Math.max(120,d*pd/n));pd=n;cam();return}
+th-=(e.clientX-lx)*.01;ph=Math.min(2.2,Math.max(.3,ph-(e.clientY-ly)*.01));lx=e.clientX;ly=e.clientY;cam()});
+cv.addEventListener('wheel',e=>{e.preventDefault();d=Math.min(600,Math.max(120,d+e.deltaY*.3));cam()},{passive:false});
+let xray=false;const xb=document.getElementById('xr');
+function setX(v){xray=v;up.material.opacity=v?.15:1;pan.material.opacity=v?.22:1;up.material.transparent=true;lid.visible=dome.visible=!v;inner.visible=v;xb.classList.toggle('on',v)}
+xb.onclick=()=>setX(!xray);
+const T=[["1. Scan the QR and log in","The student scans the QR code on the machine with a phone. It opens the ECORA website, where the student logs in with complete name, ID number and password. The machine's green lamp turns on."],
+["2. Tap Deposit on the website","The website shows the student's points and two options, Deposit and Redeem. Redeem stays locked until the points are enough. Tapping Deposit starts a 30-second countdown and turns the sensors on."],
+["3. Drop an item (timer resets to 30)","Every time an item is detected, the countdown goes back to 30 seconds. The sensor checks the item: inductive for tin cans, capacitive for plastic. The item rolls into the 2 ft sorting cylinder, which lies flat on top of the divider. Once the sensor knows the material, only the matching half swings open to its side, and the item falls into that compartment. The cylinder closes again. Watch it in X-ray view."],
+["4. Points are added","Points are added to the student's account per item (plastic bottle and tin can have different values) and shown on the phone. When the balance reaches the token value, the Redeem button on the website unlocks and the red lamp on the machine turns on."],
+["5. Tap Redeem on the website","The paper token comes out of the slot and the points for it are deducted from the student's account. The student can then use the token at partner food stalls."],["6. The session ends after 30 seconds","If no item is deposited for 30 seconds, the countdown reaches zero. The student is logged out, the remaining points stay in the account, and the lamps turn off."],["7. Open the back door to collect","Only the manager or authorized staff unlocks the padlock at the back and opens the double doors. The bottles and cans are already separated into two sides, so they can be bagged and taken out for selling. The doors are then closed and locked again."]];
+var LIVE={seen:false,on:false,can:false,tokT:-1e9};let st=-1,t0=0;
+const phEl=document.getElementById('ph');let pk='';
+function phone(e){let key,h,cd=null;const bt=(t,on)=>'<span class="bt'+(on?'':' off')+'">'+t+'</span>';
+if(st<0){key='n';h='<b>ECORA website</b><br>Scan the QR on the machine to start.'}
+else if(st===0){const s=e<1.5;key='0'+s;h=s?'<b>Scanning QR...</b><br>Opening the ECORA website.':'<b>Log in</b><div class="f">Complete name: Juan Dela Cruz</div><div class="f">ID number: 23-12345</div><div class="f">Password: ••••••••</div>'+bt('Log in',1)}
+else if(st===1){const d=e>2;key='1'+d;h='<b>Points: 0</b><br>'+bt('Deposit',1)+bt('Redeem',0)+'<br>'+(d?'Deposit mode on. Time left: <span class="cd" id="cd">30</span> s':'Redeem unlocks when you have enough points.');if(d)cd=30-(e-2)}
+else if(st===2){const k=e%10,r=k>=3.2?k-3.2:k;cd=30-r;const z=k>=4.9?'c':k>=3.2?'b':'a';key='2'+z;h='<b>Points: '+(z==='c'?20:0)+'</b><br>'+bt('Deposit',1)+bt('Redeem',0)+'<br>'+(z==='b'?'Item detected. Timer reset to 30 s.':z==='c'?'Plastic bottle counted: +20 points.':'Drop your item in the hole.')+'<br>Time left: <span class="cd" id="cd">30</span> s'}
+else if(st===3){key='3';cd=30-e;h='<b>Points: 120</b> (example)<br>'+bt('Deposit',1)+bt('Redeem',1)+'<br>Redeem is now available.<br>Time left: <span class="cd" id="cd">30</span> s'}
+else if(st===4){const p=e<1;key='4'+p;h=p?'<b>Redeeming...</b>':'<b>Points: 20</b><br>Token printing. Take it from the slot.'}
+else if(st===5){cd=Math.max(0,30-e*6);const z=cd>0;key='5'+z;h=z?'<b>Points: 20</b><br>No item deposited.<br>Time left: <span class="cd" id="cd">30</span> s':'<b>Time is up.</b><br>You were logged out. Your points stay in your account.'}
+else{key='6';h='<b>Session ended.</b>'}
+if(key!==pk){pk=key;phEl.innerHTML=h}
+const c=document.getElementById('cd');if(c&&cd!==null)c.textContent=Math.max(0,Math.ceil(cd))}
+document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{st=+b.dataset.s;t0=performance.now();
+document.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x===b));
+document.getElementById('step').innerHTML='<b>'+T[st][0]+'</b>'+T[st][1];
+if(st==6){th=Math.PI+.6;setX(true)}else if(th>3){th=.5}cam();if(st==2)setX(true);if(st>=4&&st<6)setX(false)});
+function loop(t){requestAnimationFrame(loop);const e=(t-t0)/1000;
+card.position.z=RAD-2.5+(st===0?Math.max(8.5,22-e*8):st===5?Math.min(22,8.5+e*8):st>0?8.5:22);
+const pw=LIVE.seen?LIVE.on:(st>=1&&st<5);gb.material.emissive.setHex(pw?0x2dff8a:0);
+hR.rotation.z=0;hL.rotation.z=0;bottle.visible=st===2;
+if(st===2){const k=e%10,c=v=>Math.min(1,Math.max(0,v));bottle.visible=k<9.2;bottle.position.z=Math.max(8,110-k*30);const a=Math.max(0,k-3.2),b=Math.max(0,k-4.9);bottle.position.y=k<4.9?Math.max(121.5,130-250*a*a):Math.max(19,121.5-250*b*b);bottle.position.x=20*c(b/.64);bottle.rotation.x=Math.PI/2;hR.rotation.z=1.1*(c((k-4.2)*1.5)-c((k-7)*1.5))}
+led.material.emissive.setHex((LIVE.seen?LIVE.can:(st===3||st===4))?0xff2020:0);const o=st===6?Math.min(1,e/1.2):0;dR.rotation.y=-1.7*o;dL.rotation.y=1.7*o;lock.visible=!(st===6&&e>.4);
+if(LIVE.seen||LIVE.tokT>0){const a=(performance.now()-LIVE.tokT)/1000;tok.visible=a>=0&&a<8;tok.position.z=RAD-2.5+Math.min(12,2+a*6)}else{tok.visible=st>=4;tok.position.z=RAD-2.5+(st===4?Math.min(12,2+e*6):st===5?12:2)}
+typeof qTick==='function'&&qTick();phone(e);R.render(S,C)}
+addEventListener('resize',()=>{fit()});fit();cam();requestAnimationFrame(loop);
+</script><h2>Technical drawing</h2>
+<p style="margin:0 16px 6px;font-size:13px;opacity:.75">All dimensions in millimetres. On a phone, scroll the sheet sideways or turn the phone.</p>
+<div class="sh" id="sheet"></div>
+<h2>Bill of materials</h2>
+<p style="margin:0 16px 6px;font-size:13px;opacity:.75">Costs are in Philippine pesos. Items marked Listed come from Philippine store listings. Items marked Estimate are rough figures to replace with supplier quotations. Change any cost and the totals update.</p>
+<div class="tw"><div id="bom"></div></div>
+<script>
+(function(){
+const k=.2,L=(a,b,c,d,s='#222',w=1,da='')=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${s}" stroke-width="${w}"${da?` stroke-dasharray="${da}"`:''}/>`,
+R=(x,y,w,h,f='none',s='#222',sw=1,da='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}" stroke="${s}" stroke-width="${sw}"${da?` stroke-dasharray="${da}"`:''}/>`,
+C=(x,y,r,f='none',s='#222',da='')=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${s}"${da?` stroke-dasharray="${da}"`:''}/>`,
+T=(x,y,t,a='middle',z=11,r=0)=>`<text x="${x}" y="${y}" font-size="${z}" text-anchor="${a}"${r?` transform="rotate(${r} ${x} ${y})"`:''}>${t}</text>`,
+DV=(x,a,b,t)=>L(x,a,x,b,'#06c')+L(x-4,a,x+4,a,'#06c')+L(x-4,b,x+4,b,'#06c')+T(x-4,(a+b)/2,t,'middle',11,-90),
+DH=(y,a,b,t)=>L(a,y,b,y,'#06c')+L(a,y-4,a,y+4,'#06c')+L(b,y-4,b,y+4,'#06c')+T((a+b)/2,y-5,t);
+const gy=500,Y=h=>gy-h*k,c1=230,c2=660,c3=950,cy=250,dvf='#c9d2d6';
+let s=`<defs><pattern id="mh" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 0H6M0 0V6" stroke="#8fa0a8" stroke-width=".5" fill="none"/></pattern></defs><rect width="1100" height="780" fill="#fff"/>`;
+// FRONT ELEVATION
+s+=T(c1,30,'FRONT ELEVATION','middle',13)+L(60,gy,400,gy,'#222',2)+R(c1-108,gy,216,15,'none','#222',1,'4 3')+R(c1-108,Y(150),216,30,'#e5e9ec')+R(c1-100,Y(1755),200,Y(150)-Y(1755),'url(#mh)')+R(c1-100,Y(1780),200,5,'#1f5fa8','#1f5fa8')+R(c1-118,Y(1830),236,10,'#cfd6da')
++C(c1,Y(1300),15,'#fff')+R(c1-36,Y(1170),72,100,'#dfe5e8')+R(c1-19,Y(1135),38,38,'#fff')+C(c1-14,Y(890),2,'#14a35f')+C(c1+14,Y(890),2,'#c63a3a')+R(c1-16,Y(760),32,3,'#000')
++T(c1+22,Y(1300)+4,'inlet Ø150','start',10)+T(c1+42,Y(1040)+3,'QR 190 x 190','start',10)+T(c1+42,Y(890)+3,'lamps','start',10)+T(c1+42,Y(760)+3,'token slot','start',10)+T(c1+125,Y(1768)+18,'cap band 25','start',10)+T(c1+125,Y(1830)+3,'lid 50 thick','start',10)
++DV(60,Y(1830),gy,'1830 overall')+DV(95,Y(1300),gy,'1300 inlet centre')+DV(390,Y(1170),Y(670),'500 housing')+DV(420,Y(670),gy,'670')+DV(450,Y(150),gy,'150 base')+DV(480,gy,gy+15,'76')
++DH(gy+45,c1-100,c1+100,'Ø1000')+DH(gy+65,c1-118,c1+118,'Ø1180 lid')+DH(Y(670)+14,c1-36,c1+36,'360');
+// SIDE SECTION
+s+=T(c2,30,'SIDE SECTION (through the divider)','middle',13)+L(c2-150,gy,c2+150,gy,'#222',2)+L(c2-100,Y(150),c2-100,Y(1755),'#8fa0a8',2)+L(c2+100,Y(150),c2+100,Y(1755),'#8fa0a8',2)
++R(c2-108,Y(150),216,30,'#e5e9ec')+R(c2-100,Y(1780),200,5,'#1f5fa8','#1f5fa8')+R(c2-118,Y(1830),236,10,'#cfd6da')
++R(c2-96,Y(670),192,Y(150)-Y(670),dvf)+R(c2-96,Y(1180),163,Y(670)-Y(1180),dvf)+R(c2-96,Y(1755),192,Y(1420)-Y(1755),dvf)+R(c2-96,Y(1420),65,Y(1180)-Y(1420),dvf)
++R(c2-31,Y(1420),122,48,'#dbe9f5')+R(c2+67,Y(1170),44,100,'#dfe5e8')+R(c2-103,Y(750),6,120,'#444')+R(c2+98,Y(1375),4,30,'#fff','#fff')
++T(c2+30,Y(1300)+4,'Ø240 x 610','middle',10)+T(c2+115,Y(900),'55 projecting','start',10)+T(c2,Y(1000),'divider','middle',10)
++DH(gy+45,c2-100,c2+100,'1000')+DH(Y(1420)-14,c2-31,c2+91,'610')+DH(Y(1170)-14,c2+67,c2+111,'220')+DV(c2-135,Y(750),Y(150),'600 back door');
+// PLAN
+s+=T(c3,30,'PLAN (top view)','middle',13)+C(c3,cy,118,'none','#999','4 3')+C(c3,cy,108,'none','#999','4 3')+C(c3,cy,100,'none','#222')
++L(c3,cy-96,c3,cy+96,'#555',2)+R(c3-12,cy-31,24,122,'#dbe9f5')+R(c3-36,cy+67,72,44,'#dfe5e8')+L(c3-36,cy-100,c3,cy-100,'#b00',3)+L(c3,cy-100,c3+36,cy-100,'#b00',3)
++T(c3,cy-126,'back door (2 leaves)','middle',10)+DH(cy+135,c3-36,c3+36,'360')+DH(cy+160,c3-100,c3+100,'Ø1000')+T(c3,cy+185,'FRONT (QR side)','middle',11);
+// DETAIL A
+s+=T(c3,480,'DETAIL A: SORTING CYLINDER (1:2)','middle',12)+`<path d="M${c3} 500 A60 60 0 0 1 ${c3} 620Z" fill="#cde4f5" stroke="#222"/><path d="M${c3} 500 A60 60 0 0 0 ${c3} 620Z" fill="#cfeedd" stroke="#222"/>`
++C(c3,500,3,'#222')+T(c3+8,494,'hinge (top)','start',10)+T(c3+30,565,'plastic','middle',10)+T(c3-30,565,'tin can','middle',10)+T(c3,636,'seam (over the divider)','middle',10)+DH(660,c3-60,c3+60,'Ø240')+T(c3,684,'length 610, two half-shells, 3 mm wall','middle',10);
+// TITLE BLOCK
+s+=R(10,695,1080,78,'none','#222',1.5)+T(20,720,'ECORA: recycling bin with QR-based points, general arrangement','start',14)+T(20,742,'Units: mm. Views at 1:5, detail at 1:2. Tolerance ±2 mm. Sheet 1 of 1.','start',11)+T(20,760,'Base tray buried 76 mm (3 in). Cap band 25 mm (1 in). Body diameter 1000 mm as in the written spec.','start',11)+T(1080,742,'Group 1 case study','end',11);
+document.getElementById('sheet').innerHTML=`<svg viewBox="0 0 1100 780" font-family="system-ui,sans-serif" fill="#111">${s}</svg>`;
+// BILL OF MATERIALS
+const B=[
+['Body wire mesh','Stainless steel wire mesh (suggested 2 mm wire, 25 mm opening), rolled to Ø1000 x 1605 mm high',1],
+['Frame','Stainless angle bar 25 x 25 x 3 mm: 2 rings Ø1000 and 6 vertical ribs 1605 mm long',1],
+['Base tray','Steel tray with welded floor, Ø1080 x 150 mm high, 3 mm plate; buried 76 mm',1],
+['Cap band','Blue HDPE (water tank type) band, Ø1000 x 25 mm wide',1],
+['Lid','Solid lid, Ø1180 x 50 mm thick, overhangs the body',1],
+['Inlet ring','Ø150 mm hole with ring, centre at 1300 mm height',1],
+['Sorting cylinder','Pipe Ø240 x 610 mm, 3 mm wall, cut lengthwise into 2 half-shells',1],
+['Half-shell hinges','Stainless piano hinge, 610 mm, along the top seam',2],
+['Cradle plates','Steel plate 610 x 117 x 2 mm under the cylinder',2],
+['Divider plates','Steel sheet 2 mm: 960 x 520, 815 x 510, 960 x 335 and 325 x 240 mm',1],
+['Vendo housing','Weatherproof box 360 W x 500 H x 220 D mm, about 55 mm projecting through the mesh',1],
+['QR plate','Weatherproof printed QR, 190 x 190 mm, laminated or vinyl',1],
+['Indicator lamps','12 V panel LED, Ø10 mm, 1 green and 1 red',2],
+['Token slot','Slot 160 x 15 mm with a lip, at 760 mm height',1],
+['Back door','2 leaves, each 180 x 600 mm steel, with handle and rubber seal',2],
+['Back door hinges','Stainless hinge, 75 mm, 3 per leaf',6],
+['Padlock','Weatherproof padlock',1],
+['ESP32 board','ESP32 DevKit with built-in WiFi',1],
+['Inductive sensor','LJ12A3-4-Z/BX, detects metal cans',1],
+['Capacitive sensor','LJC18A3-H-Z/BX, detects plastic bottles',1],
+['Servo motors','MG996R (SG90 only for light doors), one per half-shell',2],
+['Servo linkage','Stainless rod and bracket set, one per servo',2],
+['Servo driver board','PCA9685 or equivalent',1],
+['Thermal printer','58 mm TTL thermal printer for the paper tokens',1],
+['Thermal paper','58 mm roll, spare rolls',5],
+['Power supply','12 V 5 A adapter',1],
+['Buck converter','12 V to 5 V, 3 A',1],
+['Voltage dividers','Resistor set to bring the sensor outputs from 12 V to 3.3 V',1],
+['Wiring','Wires, terminal blocks, fuse, cable glands',1],
+['Fasteners','Stainless bolts, nuts and washers',1],
+['Ground anchors','Anchor bolts or a concrete footing for the buried base',4]];
+const P=[[12000, "Estimate: get a quotation (largest cost, about 5 m2 of stainless mesh)"], [7500, "Estimate: get a quotation (about 16 m of stainless angle bar)"], [4500, "Estimate: get a quotation (about 1.4 m2 of 3 mm plate plus welding)"], [800, "Estimate: get a quotation"], [2500, "Estimate: get a quotation (fabricated)"], [300, "Estimate: get a quotation"], [1500, "Estimate: get a quotation (HDPE or PVC pipe, 10 in)"], [350, "Estimate: get a quotation"], [400, "Estimate: get a quotation"], [3000, "Estimate: get a quotation (about 1.3 m2 of 2 mm sheet, cut)"], [3500, "Estimate: get a quotation (fabricated or electrical enclosure)"], [150, "Estimate: get a quotation (print shop)"], [60, "Estimate: get a quotation"], [150, "Estimate: get a quotation"], [1500, "Estimate: get a quotation (per leaf, with handle)"], [120, "Estimate: get a quotation"], [350, "Estimate: get a quotation"], [849, "Listed: Makerlab PH ESP32 starter kit (includes the board and extras, so a single board may cost less)"], [150, "Listed: Makerlab PH, LJ12A3-4-Z/BX"], [330, "Listed: eBuild Electronics PH, LJC18A3-H-Z/BX (check stock; Makerlab PH lists the BY version at 350)"], [170, "Listed: Makerlab PH, MG996R"], [300, "Estimate: get a quotation"], [300, "Estimate: get a quotation"], [1800, "Estimate: get a quotation (58 mm TTL printers sell for about US$13 and up overseas; no PH price found)"], [30, "Estimate: get a quotation"], [450, "Estimate: get a quotation"], [120, "Estimate: get a quotation"], [50, "Estimate: get a quotation"], [600, "Estimate: get a quotation"], [500, "Estimate: get a quotation"], [150, "Estimate: get a quotation"]];
+const bom=document.getElementById('bom');
+bom.innerHTML=`<table><tr><th>#</th><th>Item</th><th>Specification</th><th>Qty</th><th>Unit cost (₱)</th><th>Total (₱)</th><th>Basis</th></tr>${B.map((r,i)=>`<tr><td>${i+1}</td><td>${r[0]}</td><td style="white-space:normal;min-width:240px">${r[1]}</td><td>${r[2]}</td><td><input type="number" min="0" data-i="${i}" value="${P[i][0]}" style="width:90px"></td><td id="t${i}">0</td><td style="white-space:normal;min-width:200px;font-size:12px">${P[i][1]}</td></tr>`).join('')}<tr><td colspan="5"><b>Grand total</b></td><td id="gt"><b>0</b></td><td></td></tr></table>`;
+const calc=()=>{let g=0;B.forEach((r,i)=>{const v=parseFloat(bom.querySelector('[data-i="'+i+'"]').value)||0,t=v*r[2];g+=t;document.getElementById('t'+i).textContent=t.toLocaleString()});document.getElementById('gt').textContent=g.toLocaleString()};bom.addEventListener('input',calc);calc();
+})();
+</script>
+<script>
+(function(){
+const fr=document.getElementById('siteFrame'),src=document.getElementById('siteSrc').textContent.replace(/<\\\/script>/g,'<'+'/script>');
+if(location.hash==='#site')document.body.classList.add('siteonly');
+fr.srcdoc=src;
+const post=m=>{try{fr.contentWindow.postMessage(m,'*')}catch(e){}};
+let room=null,seq=0,conn='Live link off: the model and the website only work together on this device.',nt=0;
+const linkEl=document.getElementById('link'),lst=document.getElementById('lst');
+linkEl.textContent=conn;
+const note=t=>{linkEl.textContent=t;clearTimeout(nt);nt=setTimeout(()=>{linkEl.textContent=conn},4500)};
+const L={login:false,on:false,can:false,tok:''};let lastTok='';
+function sync(){const r=room&&room.peers().find(p=>!p.isMe&&p.presence&&p.presence.site&&p.presence.site.login);const s=L.login?L:(r?r.presence.site:L);
+LIVE.seen=!!s.login;LIVE.on=!!s.on;LIVE.can=!!s.can;if(s.tok&&s.tok!==lastTok)LIVE.tokT=performance.now();lastTok=s.tok||''}
+addEventListener('message',e=>{const d=e.data;if(!d||d.ecora!=='state'||e.source!==fr.contentWindow)return;
+Object.assign(L,{login:!!d.login,on:!!d.on,can:!!d.can,tok:d.tok||''});sync();
+if(room)room.presence({site:{login:L.login,on:L.on,can:L.can,tok:L.tok}}).catch(()=>{})});
+function send(t){const d={t,id:Date.now()+'-'+(seq++)};post({ecora:'item',t:d.t,id:d.id});if(room)room.emit('item',d).catch(()=>{})}
+(async()=>{try{if(!window.claude)return;const r=await claude.use('room');if(!r)return;room=r;
+r.on('item',m=>{if(m.sameTab||!m.data)return;post({ecora:'item',t:m.data.t,id:m.data.id})});
+r.onPeers(()=>sync());
+r.onConnection(ok=>{conn=ok?'Live link on: this model and the website on other devices are connected.':'Live link off: the model and the website only work together on this device.';linkEl.textContent=conn})}catch(e){}})();
+const Q=[],landed=new THREE.Group();vis.add(landed);let cur=null,binP=0,binC=0;
+const lstUpd=()=>{lst.textContent='Bin: '+binP+' bottle(s), '+binC+' can(s). Waiting to drop: '+(Q.length+(cur?1:0))};
+document.getElementById('go').onclick=()=>{const p=Math.min(30,Math.max(0,+document.getElementById('np').value||0)),c=Math.min(30,Math.max(0,+document.getElementById('nc').value||0)),a=[];
+for(let i=0;i<p;i++)a.push('plastic');for(let i=0;i<c;i++)a.push('can');
+for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}a.forEach(t=>Q.push(t));lstUpd()};
+document.getElementById('clr').onclick=()=>{while(landed.children.length)landed.remove(landed.children[0]);binP=binC=0;lstUpd()};
+function mk(t){const m=new THREE.Mesh(t==='can'?new THREE.CylinderGeometry(3.5,3.5,8,14):new THREE.CylinderGeometry(3.5,3.5,16,14),t==='can'?M(0xbdc3c7):M(0x5bb8e8,{transparent:true,opacity:.85}));m.rotation.order='YXZ';m.rotation.x=Math.PI/2;S.add(m);return m}
+window.qTick=function(){
+const now=performance.now()/1000,c=v=>Math.min(1,Math.max(0,v));
+if(!cur&&Q.length){const t=Q.shift();cur={t,m:mk(t),t0:now,sent:0,lx:(t==='can'?-1:1)*(8+Math.random()*28),lz:-18+Math.random()*34,ly:19+Math.floor(Math.random()*3)*7};lstUpd()}
+if(!cur)return;
+const k=cur,m=k.m,e=now-k.t0,sd=k.t==='can'?-1:1,H=sd>0?hR:hL;
+if(e>=.68&&!k.sent){k.sent=1;if(LIVE.seen&&!LIVE.on){k.rej=1;note('Rejected: tap Deposit on the website first.')}else send(k.t)}
+if(k.rej){m.position.set(0,130,Math.min(110,8+Math.max(0,e-.68)*150));if(e>=1.6){S.remove(m);cur=null;lstUpd()}return}
+const a=Math.max(0,e-.68),f=Math.max(0,e-1.2);
+m.position.set(sd*3+(k.lx-sd*3)*c(f/.55),e<1.2?Math.max(121.5,130-300*a*a):Math.max(k.ly,121.5-300*f*f),e<.68?110-e*150:8+(k.lz-8)*c(f/.55));
+H.rotation.z=sd*1.1*(c((e-.95)*3)-c((e-2)*3));
+if(e>=2.4){m.rotation.y=Math.random()*Math.PI;landed.add(m);if(k.t==='can')binC++;else binP++;cur=null;lstUpd()}
+};
+})();
+
+</script>
+</body></html>
